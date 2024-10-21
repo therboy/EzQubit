@@ -19,19 +19,19 @@ The **Qiskit GUI Builder** is a graphical application that empowers users to con
 - **Python:** Version 3.7 or later
 - **pip:** Python package manager
 
+### Clone the Repository
+
+```
+git clone https://github.com/therboy/EzQubit.git
+cd EzQubit
+```
+
 ### Install Dependencies
 
 Open your terminal or command prompt and run the following command to install the necessary dependencies:
 
 ```
 pip install -r requirements.txt
-```
-
-### Clone the Repository
-
-```
-git clone https://github.com/therboy/EzQubit.git
-cd EzQubit
 ```
 
 ### Run the Application
