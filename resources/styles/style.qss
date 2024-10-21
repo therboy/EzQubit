@@ -1,0 +1,31 @@
+/* style.qss */
+/* Define your application styles here */
+
+QMainWindow {
+    background-color: #ffffff;
+}
+
+QPushButton {
+    background-color: #4CAF50;
+    color: white;
+    padding: 5px 15px;
+    border: none;
+    border-radius: 4px;
+}
+
+QPushButton:hover {
+    background-color: #45a049;
+}
+
+QListWidget {
+    background-color: #f0f0f0;
+}
+
+QTextEdit {
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+}
+
+QLabel {
+    font-size: 14px;
+}

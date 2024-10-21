@@ -1,0 +1,20 @@
+{
+    "qreg": {
+        "q0": {}
+    },
+    "creg": {
+        "c0": {}
+    },
+    "operations": [
+        {
+            "name": "h",
+            "qubits": ["q0"]
+        },
+        {
+            "name": "measure",
+            "qubits": ["q0"],
+            "cregs": ["c0"]
+        }
+    ],
+    "name": "Example Quantum Circuit"
+}
