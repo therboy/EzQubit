@@ -24,14 +24,14 @@ The **Qiskit GUI Builder** is a graphical application that empowers users to con
 Open your terminal or command prompt and run the following command to install the necessary dependencies:
 
 
-pip install qiskit pyqt5 matplotlib
+pip install -r requirements.txt
 
 
 ### Clone the Repository
 
 
-git clone https://github.com/yourusername/qiskit-gui-builder.git
-cd qiskit-gui-builder
+git clone https://github.com/therboy/QubitLogics.git
+cd QubitLogics
 
 
 ### Run the Application
@@ -48,17 +48,6 @@ python main.py
 4. **Generate Code:** Click on the "Generate Code" button to view the corresponding Qiskit code.
 5. **Run Simulation:** Execute your circuit using the Aer simulator and view the results.
 6. **Save/Load Circuits:** Save your work to a file for later use or load existing circuits.
-
-## Screenshots
-
-![Circuit Builder](assets/circuit_builder.png)
-*Visual circuit builder interface.*
-
-![Code Generation](assets/code_generation.png)
-*Automatically generated Qiskit code.*
-
-![Simulation Results](assets/simulation_results.png)
-*Simulation results using Qiskit's Aer simulator.*
 
 ## Project Structure
 
