@@ -1,23 +1,19 @@
 # gui/main_window.py
 
-"""
-Defines the MainWindow class, which is the primary window of the application.
-"""
-
 from PyQt5.QtWidgets import (
-    QMainWindow, QAction, QFileDialog, QMessageBox, QApplication,
-    QTabWidget, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTextEdit
+    QMainWindow, QAction, QFileDialog, QMessageBox, QTabWidget, QWidget, QVBoxLayout,
+    QLabel
 )
-from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtCore import Qt
 from gui.circuit_builder import CircuitBuilder
+from gui.gate_info_tab import GateInfoTab
+from gui.latex_renderer import render_latex_to_pixmap
+from PyQt5.QtWebEngineWidgets import QWebEngineView
+from PyQt5.QtGui import QFont
+from utils.qiskit_helpers import get_full_unitary, get_state_vector, matrix_to_latex, statevector_to_latex
 import sys
 
 class MainWindow(QMainWindow):
-    """
-    The main window of the Qiskit GUI Application.
-    """
-
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Qiskit GUI Builder")
@@ -25,9 +21,6 @@ class MainWindow(QMainWindow):
         self.initUI()
 
     def initUI(self):
-        """
-        Initializes the user interface components.
-        """
         # Create the menu bar
         self.create_menu_bar()
 
@@ -48,6 +41,10 @@ class MainWindow(QMainWindow):
         # Add widgets to Mathematical Representation Tab
         self.add_math_widgets()
 
+        # Gate Information Tab
+        self.gate_info_tab = GateInfoTab()
+        self.tabs.addTab(self.gate_info_tab, "Gate Information")
+
         # Connect signals
         self.circuit_builder.circuit_updated.connect(self.update_math_display)
 
@@ -55,9 +52,6 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage("Ready")
 
     def create_menu_bar(self):
-        """
-        Creates the menu bar with File and Help menus.
-        """
         menubar = self.menuBar()
 
         # File menu
@@ -107,53 +101,82 @@ class MainWindow(QMainWindow):
         help_menu.addAction(about_action)
 
     def add_math_widgets(self):
-        """
-        Adds widgets to display mathematical representations.
-        """
-        # Label for Unitary Matrix
-        self.unitary_label = QLabel("Unitary Matrix of the Circuit:")
-        self.math_layout.addWidget(self.unitary_label)
+        # Web view for Unitary Matrix
+        self.unitary_view = QWebEngineView()
+        self.math_layout.addWidget(QLabel("<h3>Unitary Matrix of the Circuit:</h3>"))
+        self.math_layout.addWidget(self.unitary_view)
 
-        # Text edit for Unitary Matrix LaTeX
-        self.unitary_text = QTextEdit()
-        self.unitary_text.setReadOnly(True)
-        self.unitary_text.setStyleSheet("background-color: #f0f0f0;")
-        self.math_layout.addWidget(self.unitary_text)
-
-        # Label for State Vector
-        self.state_vector_label = QLabel("State Vector:")
-        self.math_layout.addWidget(self.state_vector_label)
-
-        # Text edit for State Vector LaTeX
-        self.state_vector_text = QTextEdit()
-        self.state_vector_text.setReadOnly(True)
-        self.state_vector_text.setStyleSheet("background-color: #f0f0f0;")
-        self.math_layout.addWidget(self.state_vector_text)
+        # Web view for State Vector
+        self.state_vector_view = QWebEngineView()
+        self.math_layout.addWidget(QLabel("<h3>State Vector:</h3>"))
+        self.math_layout.addWidget(self.state_vector_view)
 
     def update_math_display(self):
-        """
-        Updates the mathematical representations based on the current circuit.
-        """
         # Fetch unitary matrix
-        unitary = self.circuit_builder.get_unitary_matrix()
+        unitary = get_full_unitary(self.circuit_builder.circuit)
         if unitary is not None:
-            unitary_latex = self.circuit_builder.matrix_to_latex(unitary)
-            self.unitary_text.setPlainText(unitary_latex)
+            unitary_latex = matrix_to_latex(unitary)
+            unitary_html = f"""
+            <html>
+            <head>
+                <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+                <script id="MathJax-script" async
+                    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+                </script>
+                <style>
+                    body {{
+                        font-family: Arial, sans-serif;
+                        padding: 20px;
+                    }}
+                    pre {{
+                        background-color: #f0f0f0;
+                        padding: 10px;
+                        border-radius: 5px;
+                    }}
+                </style>
+            </head>
+            <body>
+                $$ {unitary_latex} $$
+            </body>
+            </html>
+            """
+            self.unitary_view.setHtml(unitary_html)
         else:
-            self.unitary_text.setPlainText("Unitary matrix not available for the current circuit.")
+            self.unitary_view.setHtml("<p>Unitary matrix not available for the current circuit.</p>")
 
         # Fetch state vector
-        state_vector = self.circuit_builder.get_state_vector()
+        state_vector = get_state_vector(self.circuit_builder.circuit)
         if state_vector is not None:
-            state_vector_latex = self.circuit_builder.state_vector_to_latex(state_vector)
-            self.state_vector_text.setPlainText(state_vector_latex)
+            state_vector_latex = statevector_to_latex(state_vector)
+            state_vector_html = f"""
+            <html>
+            <head>
+                <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+                <script id="MathJax-script" async
+                    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+                </script>
+                <style>
+                    body {{
+                        font-family: Arial, sans-serif;
+                        padding: 20px;
+                    }}
+                    pre {{
+                        background-color: #f0f0f0;
+                        padding: 10px;
+                        border-radius: 5px;
+                    }}
+                </style>
+            </head>
+            <body>
+                $$ {state_vector_latex} $$
+            </body>
+            </html>
+            """
+            self.state_vector_view.setHtml(state_vector_html)
         else:
-            self.state_vector_text.setPlainText("State vector not available for the current circuit.")
+            self.state_vector_view.setHtml("<p>State vector not available for the current circuit.</p>")
 
     def export_latex(self):
-        """
-        Exports the mathematical representations to a LaTeX file.
-        """
         options = QFileDialog.Options()
         file_name, _ = QFileDialog.getSaveFileName(
             self, "Export LaTeX", "",
@@ -166,18 +189,15 @@ class MainWindow(QMainWindow):
                     f.write("\\usepackage{amsmath}\n")
                     f.write("\\begin{document}\n\n")
                     f.write("## Unitary Matrix of the Circuit\n\n")
-                    f.write(f"\\[\n{self.unitary_text.toPlainText()}\n\\]\n\n")
+                    f.write(f"\\[\n{self.circuit_builder.get_unitary_latex()}\n\\]\n\n")
                     f.write("## State Vector\n\n")
-                    f.write(f"\\[\n{self.state_vector_text.toPlainText()}\n\\]\n")
+                    f.write(f"\\[\n{self.circuit_builder.get_statevector_latex()}\n\\]\n")
                     f.write("\n\\end{document}")
                 QMessageBox.information(self, "Export Successful", f"LaTeX file saved to {file_name}")
             except Exception as e:
                 QMessageBox.critical(self, "Export Failed", f"Failed to export LaTeX file:\n{e}")
 
     def new_circuit(self):
-        """
-        Clears the current circuit to start a new one.
-        """
         response = QMessageBox.question(
             self, 'Confirm New Circuit',
             'Are you sure you want to create a new circuit? Unsaved changes will be lost.',
@@ -189,9 +209,6 @@ class MainWindow(QMainWindow):
             self.statusBar().showMessage("New circuit created")
 
     def open_circuit(self):
-        """
-        Opens a saved circuit from a file.
-        """
         options = QFileDialog.Options()
         file_name, _ = QFileDialog.getOpenFileName(
             self, "Open Circuit", "",
@@ -208,9 +225,6 @@ class MainWindow(QMainWindow):
                 )
 
     def save_circuit(self):
-        """
-        Saves the current circuit to a file.
-        """
         options = QFileDialog.Options()
         file_name, _ = QFileDialog.getSaveFileName(
             self, "Save Circuit", "",
@@ -226,9 +240,6 @@ class MainWindow(QMainWindow):
                 )
 
     def show_about(self):
-        """
-        Displays an About dialog with application information.
-        """
         QMessageBox.information(
             self, "About",
             "Qiskit GUI Builder\nVersion 2.0\nDeveloped with PyQt5 and Qiskit\n\n" +
@@ -237,9 +248,6 @@ class MainWindow(QMainWindow):
         )
 
     def closeEvent(self, event):
-        """
-        Overrides the close event to confirm exit.
-        """
         response = QMessageBox.question(
             self, 'Confirm Exit',
             'Are you sure you want to exit? Unsaved changes will be lost.',

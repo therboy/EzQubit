@@ -1,0 +1,82 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# PyInstaller
+# Usually these files are written by a python script from a template
+# before PyInstaller builds the binary
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# IDEs and editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# PyCharm specific files
+*.iml
+
+# macOS specific
+.DS_Store
+
+# Linux file system specific
+*~ 
+*.swp
+.swp
+.cache
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore Qiskit transpiled files if any
+*.qasm
+
+# Ignore the circuits examples if unnecessary
+circuits/example_circuit.*
+
+# Ignore the style resources that might be user-specific
+resources/styles/style.qss
+
+# Ignore the requirements lock files
+poetry.lock
+Pipfile.lock
+
+# Ignore logs
+*.log
+
+# Ignore coverage tool output
+.coverage
+coverage/
+
+# Ignore pytest cache
+.pytest_cache/

@@ -1,7 +1,8 @@
+# utils/__init__.py
+
 """
-Initializes the utils package.
+Initializes the Utils package.
 """
 
-# Import utility modules for easy access
 from .qiskit_helpers import *
 from .file_operations import *

@@ -5,25 +5,24 @@ Defines the CircuitBuilder class, which provides the interface for building quan
 """
 
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QListWidget,
-    QListWidgetItem, QMessageBox, QInputDialog, QGraphicsView, QGraphicsScene,
-    QGraphicsPixmapItem, QSplitter, QTextEdit, QSizePolicy
+    QWidget, QVBoxLayout, QLabel, QPushButton, QListWidget, QListWidgetItem,
+    QMessageBox, QInputDialog, QGraphicsView, QGraphicsScene, QGraphicsPixmapItem,
+    QSplitter, QTextEdit, QSizePolicy
 )
 from PyQt5.QtGui import QPixmap, QFont
-from PyQt5.QtCore import Qt, QSize, pyqtSignal
+from PyQt5.QtCore import Qt, QRectF, pyqtSignal
 from qiskit_aer import AerSimulator
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 from qiskit.compiler import transpile
 from qiskit.visualization import plot_histogram
 from gui.code_generator import CodeGenerator
 from gui.code_display_dialog import CodeDisplayDialog
-from utils.qiskit_helpers import visualize_circuit, get_gate_matrix, matrix_to_latex, statevector_to_latex
+from utils.qiskit_helpers import visualize_circuit, get_gate_matrix
 import matplotlib.pyplot as plt
 import os
 import numpy as np
 import sympy as sp
 from qiskit.quantum_info import Operator, Statevector
-from PyQt5.QtCore import QRectF  # Ensure QRectF is imported at the top
 
 class CircuitBuilder(QWidget):
     """
@@ -129,6 +128,17 @@ class CircuitBuilder(QWidget):
         self.math_text.setMinimumHeight(200)
         right_layout.addWidget(self.math_text)
 
+        # Simulation Results
+        self.sim_results_label = QLabel("Simulation Results:")
+        self.sim_results_label.setFont(QFont("Arial", 14))
+        right_layout.addWidget(self.sim_results_label)
+
+        # QLabel to display simulation histogram
+        self.results_view = QLabel()
+        self.results_view.setAlignment(Qt.AlignCenter)
+        self.results_view.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        right_layout.addWidget(self.results_view)
+
         # Set initial sizes
         splitter.setSizes([300, 1100])
 
@@ -189,6 +199,8 @@ class CircuitBuilder(QWidget):
                     return
                 self.apply_multi_qubit_gate(gate, control_qubits, target_qubits)
             elif gate == 'Measure':
+                # Save the state vector before measurement
+                self.circuit.save_statevector()
                 self.circuit.measure_all()
             else:
                 QMessageBox.warning(self, "Unknown Gate", f"The gate '{gate}' is not recognized.")
@@ -315,75 +327,68 @@ class CircuitBuilder(QWidget):
         Updates the mathematical representations of the quantum circuit.
         """
         try:
-            # Get the state vector
+            # Get the saved state vector
             backend = AerSimulator(method='statevector')
             transpiled_circuit = transpile(self.circuit, backend)
             job = backend.run(transpiled_circuit)
             result = job.result()
-            state_vector = result.get_statevector()
+            # 'statevector' is saved via save_statevector()
+            state_vector = result.data(0).get('statevector')
 
-            # Convert state vector to LaTeX
-            state_vector_latex = self.state_vector_to_latex(state_vector)
+            if state_vector is None:
+                raise ValueError("No statevector available for the current circuit.")
+
+            # Convert state vector to a readable format
+            state_vector_str = self.state_vector_to_string(state_vector)
 
             # Get the overall unitary matrix
             unitary = self.get_unitary()
             if unitary is not None:
-                unitary_latex = self.unitary_to_latex(unitary)
+                unitary_str = self.unitary_to_string(unitary)
             else:
-                unitary_latex = "Unitary matrix not available for this circuit."
+                unitary_str = "Unitary matrix not available for this circuit."
 
             # Combine into a comprehensive mathematical display
-            math_content = f"<h3>State Vector:</h3><p>{state_vector_latex}</p>"
-            math_content += f"<h3>Unitary Matrix:</h3><p>{unitary_latex}</p>"
+            math_content = f"<h3>State Vector:</h3><pre>{state_vector_str}</pre>"
+            math_content += f"<h3>Unitary Matrix:</h3><pre>{unitary_str}</pre>"
 
             self.math_text.setHtml(math_content)
             self.circuit_updated.emit()
         except Exception as e:
             self.math_text.setText(f"Error displaying mathematical representations:\n{e}")
 
-    def state_vector_to_latex(self, state_vector):
+    def state_vector_to_string(self, state_vector):
         """
-        Converts the state vector to a LaTeX-formatted string.
+        Converts the state vector to a readable string format.
 
         Args:
             state_vector (Statevector): The state vector of the circuit.
 
         Returns:
-            str: LaTeX-formatted state vector.
+            str: Readable string representation of the state vector.
         """
         num_qubits = self.circuit.num_qubits
         basis_states = [f"|{i:0{num_qubits}b}>" for i in range(2**num_qubits)]
-        coefficients = [f"{abs(coef):.2f}" for coef in state_vector]
-        phases = [f"{sp.N(sp.arg(coef), 3):.2f}" for coef in state_vector]
+        state_str = ""
+        for state, amplitude in zip(basis_states, state_vector):
+            state_str += f"{amplitude:.2f} |{state[1:-1]}>\n"
+        return state_str
 
-        # Combine coefficients and phases
-        state_components = [
-            f"{coef} e^{{i{phase}}} {state}"
-            for coef, phase, state in zip(coefficients, phases, basis_states)
-        ]
-
-        latex_str = "\\psi = " + " + ".join(state_components)
-        return latex_str
-
-    def unitary_to_latex(self, unitary_matrix):
+    def unitary_to_string(self, unitary_matrix):
         """
-        Converts the unitary matrix to a LaTeX-formatted string.
+        Converts the unitary matrix to a readable string format.
 
         Args:
             unitary_matrix (numpy.ndarray): The unitary matrix of the circuit.
 
         Returns:
-            str: LaTeX-formatted unitary matrix.
+            str: Readable string representation of the unitary matrix.
         """
-        # Convert numpy array to LaTeX matrix
-        latex_matrix = "\\begin{pmatrix}\n"
-        rows = []
+        unitary_str = ""
         for row in unitary_matrix:
-            row_str = " & ".join([f"{elem:.2f}" for elem in row])
-            rows.append(row_str)
-        latex_matrix += " \\\\\n".join(rows)
-        latex_matrix += "\n\\end{pmatrix}"
-        return latex_matrix
+            row_str = "  ".join([f"{elem.real:.2f}+{elem.imag:.2f}j" for elem in row])
+            unitary_str += f"{row_str}\n"
+        return unitary_str
 
     def get_unitary(self):
         """
@@ -461,15 +466,14 @@ class CircuitBuilder(QWidget):
             total_shots = sum(counts.values())
             probabilities = {k: v / total_shots for k, v in counts.items()}
 
-            # Convert probabilities to LaTeX
-            probs_latex = "\\begin{align*}\n"
+            # Convert probabilities to readable string
+            probs_str = ""
             for state, prob in probabilities.items():
-                probs_latex += f"P({state}) &= {prob:.2f} \\\\\n"
-            probs_latex += "\\end{align*}"
+                probs_str += f"P({state}) = {prob:.2f}\n"
 
             # Update mathematical display
             math_content = self.math_text.toHtml()
-            math_content += f"<h3>Measurement Probabilities:</h3><p>{probs_latex}</p>"
+            math_content += f"<h3>Measurement Probabilities:</h3><pre>{probs_str}</pre>"
             self.math_text.setHtml(math_content)
         except Exception as e:
             self.math_text.setText(f"Error updating simulation mathematics:\n{e}")
@@ -511,4 +515,33 @@ class CircuitBuilder(QWidget):
         self.history.append(action)
 
         # Reapply the action
-        # Note: Imple
+        # Note: Implementing redo functionality requires tracking detailed actions
+        # For simplicity, this example does not implement it fully
+        QMessageBox.information(self, "Redo", f"Redid action: {action}")
+        self.rebuild_circuit()
+
+    def rebuild_circuit(self):
+        """
+        Rebuilds the circuit based on the current history.
+        """
+        self.init_circuit()
+        for action in self.history:
+            if action.startswith("Add Qubit"):
+                self.add_qubit()
+            elif action.startswith("Add Gate:"):
+                gate = action.split(": ")[1]
+                # Re-select the gate and add it
+                index = self.gate_list.findItems(gate, Qt.MatchExactly)
+                if index:
+                    self.gate_list.setCurrentRow(index[0].row())
+                    self.add_gate()
+        self.update_visualization()
+
+    def clear_circuit(self):
+        """
+        Clears the current circuit and resets it.
+        """
+        self.init_circuit()
+        self.update_visualization()
+        self.math_text.clear()
+        QMessageBox.information(self, "Circuit Cleared", "The circuit has been cleared.")
