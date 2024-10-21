@@ -1,4 +1,4 @@
-# Qiskit GUI Builder
+# QubitLogics | Qiskit GUI Builder (v0.00)
 
 ## Overview
 
