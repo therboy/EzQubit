@@ -1,4 +1,4 @@
-# QubitLogics | Qiskit GUI Builder (v0.00)
+# EzQubit | An Easy Qiskit GUI Builder Project (v0.00)
 
 ## Overview
 
@@ -30,8 +30,8 @@ pip install -r requirements.txt
 ### Clone the Repository
 
 
-git clone https://github.com/therboy/QubitLogics.git
-cd QubitLogics
+git clone https://github.com/therboy/EzQubit.git
+cd EzQubit
 
 
 ### Run the Application
