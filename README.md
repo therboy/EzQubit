@@ -49,30 +49,6 @@ python main.py
 5. **Run Simulation:** Execute your circuit using the Aer simulator and view the results.
 6. **Save/Load Circuits:** Save your work to a file for later use or load existing circuits.
 
-## Project Structure
-
-
-qiskit-gui-builder/
-├── assets/
-│   ├── preview.png
-│   ├── circuit_builder.png
-│   ├── code_generation.png
-│   └── simulation_results.png
-├── src/
-│   ├── __init__.py
-│   ├── main.py
-│   ├── main_window.py
-│   ├── circuit_builder.py
-│   └── code_generator.py
-├── tests/
-│   ├── test_main.py
-│   ├── test_circuit_builder.py
-│   └── test_code_generator.py
-├── README.md
-├── requirements.txt
-└── LICENSE
-
-
 ## Notes
 
 - **Line Counts:** While some files like `__init__.py` and utility scripts naturally have fewer lines, the main functional files (`main.py`, `main_window.py`, `circuit_builder.py`, and `code_generator.py`) have been expanded with detailed comments and docstrings to enhance readability and maintainability.
