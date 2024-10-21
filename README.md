@@ -61,20 +61,4 @@ python main.py
 
 - **Dependencies:** Ensure all required packages (`qiskit`, `pyqt5`, `matplotlib`) are installed in your environment. You can install them using the provided installation instructions.
 
-## Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository.
-2. Create a new branch: `git checkout -b feature/YourFeature`.
-3. Commit your changes: `git commit -m 'Add some feature'`.
-4. Push to the branch: `git push origin feature/YourFeature`.
-5. Open a pull request.
-
-## License
-
-This project is licensed under the [MIT License](LICENSE).
-
----
-
 *Thank you for using Qiskit GUI Builder!*
