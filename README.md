@@ -21,12 +21,8 @@ The Qiskit GUI Builder is a graphical application that allows users to build qua
 
 ### Install Dependencies
 
-```bash
+```
 pip install qiskit pyqt5 matplotlib
-
-
-
-
 ---
 
 # **Notes**
